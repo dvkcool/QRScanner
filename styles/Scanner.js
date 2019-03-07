@@ -16,6 +16,7 @@ export default StyleSheet.create({
     color: 'rgb(0,122,255)',
   },
   buttonTouchable: {
+    marginTop:30,
     padding: 16,
   },
 });
