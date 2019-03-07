@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, Text, TouchableOpacity, ActivityIndicator} from 'react-native';
+import {View, Text, TouchableOpacity, ActivityIndicator, Alert} from 'react-native';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import styles from '../../../styles/Scanner';
 class ScanActivity extends Component<Props>{
@@ -46,18 +46,35 @@ export default class ProdScan extends Component<Props> {
     this.setState({
       send: 0
     })
-    console.log(e);
-    fetch('https://www.google.co.in', {
-  method: 'GET',
-  }).then((responseJson) => {
+    var val = e.data;
+    var n = val.length;
+    var t = val.substring(0,6);
+    if(n<5){
+      Alert.alert("Invalid qr code");
       this.setState({
         send:1
       });
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-
+    }
+    else if(!(t==="gstdvk")){
+      Alert.alert("Invalid qr code");
+      this.setState({
+        send:1
+      });
+    }
+    else{
+      Alert.alert("Valid qr code");
+      fetch('https://www.google.co.in', {
+    method: 'GET',
+    }).then((responseJson) => {
+        this.setState({
+          send:1
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    }
+    console.log(e);
   }
   constructor(props) {
     super(props);
@@ -66,7 +83,7 @@ export default class ProdScan extends Component<Props> {
   }
   render() {
     return (
-        <ScanActivity send={this.state.send} onSuccess={this.onSuccess.bind(this)}/>
+        <ScanActivity send={this.state.send} onSuccess={this.onSuccess.bind(this)} navigation={this.props.navigation}/>
 
 
     );
