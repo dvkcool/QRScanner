@@ -1,14 +1,64 @@
 import React, {Component} from 'react';
-import {View, Text, TouchableOpacity, ActivityIndicator, Alert} from 'react-native';
+import {View, Text, TouchableOpacity, ActivityIndicator, Alert, AsyncStorage} from 'react-native';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import styles from '../../../styles/Scanner';
 class ScanActivity extends Component<Props>{
+  constructor(props) {
+    super(props);
+    this.state = {
+      ip: "",
+      bill_id: ""
+    };
+    this.onDSuccess = this.onDSuccess.bind(this);
+    AsyncStorage.getItem('ip').then((value) => this.setState({ 'ip': value }));
+    AsyncStorage.getItem('bill_id').then((value) => this.setState({ 'bill_id': value }));
+  }
+  onDSuccess(e) {
+    this.setState({
+      send: 0
+    })
+    var val = e.data;
+    var n = val.length;
+    var t = val.substring(0,6);
+    var q = val.substring(6);
+    if(n<5){
+      Alert.alert("Invalid qr code");
+      this.setState({
+        send:1
+      });
+    }
+    else if(!(t==="gstdvk")){
+      Alert.alert("Invalid qr code");
+      this.setState({
+        send:1
+      });
+    }
+    else{
+      Alert.alert("Valid qr code");
+      var url = "http://"+this.state.ip + ":8083/productscan/"+this.state.bill_id+"/"+q;
+      console.log(url);
+      console.log("HI");
+      fetch(url, {
+    method: 'GET',
+    }).then((responseJson) => {
+      this.scanner.reactivate();
+        this.setState({
+          send:1
+        });
+
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    }
+    console.log(e);
+  }
   render(){
     if(this.props.send==1){
       return(
           <QRCodeScanner
-            onRead={this.props.onSuccess}
-            reactivate = {true}
+            onRead={this.onDSuccess}
+            ref={(node) => { this.scanner = node }}
             reactivateTimeout = {10}
             topContent={
               <Text style={styles.centerText}>
@@ -42,40 +92,7 @@ export default class ProdScan extends Component<Props> {
       send: 1
     })
   }
-  onSuccess(e) {
-    this.setState({
-      send: 0
-    })
-    var val = e.data;
-    var n = val.length;
-    var t = val.substring(0,6);
-    if(n<5){
-      Alert.alert("Invalid qr code");
-      this.setState({
-        send:1
-      });
-    }
-    else if(!(t==="gstdvk")){
-      Alert.alert("Invalid qr code");
-      this.setState({
-        send:1
-      });
-    }
-    else{
-      Alert.alert("Valid qr code");
-      fetch('https://www.google.co.in', {
-    method: 'GET',
-    }).then((responseJson) => {
-        this.setState({
-          send:1
-        });
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-    }
-    console.log(e);
-  }
+
   constructor(props) {
     super(props);
     this.state = { send: 1 };
@@ -83,7 +100,7 @@ export default class ProdScan extends Component<Props> {
   }
   render() {
     return (
-        <ScanActivity send={this.state.send} onSuccess={this.onSuccess.bind(this)} navigation={this.props.navigation}/>
+        <ScanActivity send={this.state.send} navigation={this.props.navigation}/>
 
 
     );
