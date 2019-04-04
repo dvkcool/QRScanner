@@ -10,34 +10,37 @@ export default class BillScan extends Component<Props> {
   constructor(props) {
     super(props);
     this.state = {
-      ip: "",
-      bill_id: ""
+      ip: ""
     };
     this.setScan = this.setScan.bind(this);
     AsyncStorage.getItem('ip').then((value) => this.setState({ 'ip': value }));
-    AsyncStorage.getItem('bill_id').then((value) => this.setState({ 'bill_id': value }));
   }
   setScan(){
-    if(this.state.ip ===""|| this.state.bill_id===""){
-      Alert.alert("Error", "Please enter valid url and bill id");
+    if(this.state.ip ===""){
+      Alert.alert("Error", "Please enter valid url");
     }
     else{
-      var url = "http://"+this.state.ip + ":8083/test";
-      console.log(url);
-      fetch(url, {
-        method: 'GET',
-        }).then((response) => response.json())
-          .then((responseJson) =>  {
-            if(responseJson.sucess === 1){
-              console.log("Valid Ip");
-              AsyncStorage.setItem('ip', this.state.ip);
-              AsyncStorage.setItem('bill_id', this.state.bill_id);
-              this.props.navigation.navigate('ProductScan');
-            }
-          })
-          .catch((error) => {
-            console.error(error);
-          });
+      try {
+        var url = "http://"+this.state.ip + ":8083/test";
+        console.log(url);
+        fetch(url, {
+          method: 'GET',
+          }).then((response) => response.json())
+            .then((responseJson) =>  {
+              if(responseJson.sucess === 1){
+                console.log("Valid Ip");
+                AsyncStorage.setItem('ip', this.state.ip);
+                this.props.navigation.navigate('ProductScan');
+              }
+            })
+            .catch((error) => {
+              Alert.alert("Please enter valid Ip");
+              console.error(error);
+            });
+      }
+      catch (e) {
+        console.error(e.message);
+      }
     }
   }
   render() {
@@ -48,12 +51,6 @@ export default class BillScan extends Component<Props> {
           onChangeText={(ip) => this.setState({ip})}
           value={this.state.ip}
           placeholder="IP of system"
-        />
-        <TextInput
-          style={{height: 40, borderColor: 'gray', borderWidth: 1, width: width*0.5, margin: 20}}
-          onChangeText={(bill_id) => this.setState({bill_id})}
-          value={this.state.bill_id}
-          placeholder="Bill Id"
         />
         <TouchableOpacity
           onPress={() => this.setScan()}>

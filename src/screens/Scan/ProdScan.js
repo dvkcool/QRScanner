@@ -21,6 +21,7 @@ class ScanActivity extends Component<Props>{
     var n = val.length;
     var t = val.substring(0,6);
     var q = val.substring(6);
+    console.log(q);
     if(n<5){
       Alert.alert("Invalid qr code");
       this.setState({
@@ -32,20 +33,39 @@ class ScanActivity extends Component<Props>{
       this.setState({
         send:1
       });
+      this.scanner.reactivate();
     }
     else{
       Alert.alert("Valid qr code");
-      var url = "http://"+this.state.ip + ":8083/productscan/"+this.state.bill_id+"/"+q;
-      console.log(url);
-      console.log("HI");
-      fetch(url, {
-    method: 'GET',
-    }).then((responseJson) => {
+      var url = "http://"+this.state.ip + ":8083";
+      fetch(url+"/product", {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      id: q
+    })
+    }).then((response) => response.json())
+    .then((responseJson) => {
+      fetch(url+"/productscan", {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(responseJson[0])
+    })
+    .then((res) => {
+      console.log(res);
       this.scanner.reactivate();
         this.setState({
           send:1
         });
 
+      })
+      .catch((error) => {
+        console.error(error);
+      });
       })
       .catch((error) => {
         console.error(error);
